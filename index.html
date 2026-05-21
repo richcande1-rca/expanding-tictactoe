@@ -55,7 +55,7 @@
       <div class="rule-alert">
         <strong>Tournament Mode:</strong>
         3×3 starts default. Draw/stalemate expands to 7×7. A 7×7 stalemate enters Bonkers. Bonkers stalemate enters Super Bonkers sudden death.
-        <div class="rule-flow">Classic: 3×3 needs 3 → draw/stalemate → 7×7 needs 5</div>
+        <div class="rule-flow">Classic: 3×3 needs 3 → draw → 7×7 needs 5</div>
         <div class="rule-flow">Bonkers: Scatter Seed plus 4 hidden rubble mines. Mine = lost square, no lost turn.</div>
         <div class="rule-flow">Super Bonkers: blank 7×7, 6 hidden instant-death bombs. Bomb = immediate loss. Bombs are hidden from everyone.</div>
       </div>
@@ -179,7 +179,18 @@
   }
 
   function handleDrawOrFull(){
-    if(tournamentStage==="classic"){addLog("3×3 draw. Tournament expands to 7×7."); expandBoard(); modeLabel="Tournament: 7×7"; tournamentStage="resolution"; current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu(); return;}
+    if(size===3&&winN===3){
+      if(tournamentStage==="classic"){
+        addLog("3×3 draw. Tournament expands to 7×7.");
+        modeLabel="Tournament: 7×7";
+        tournamentStage="resolution";
+      } else {
+        addLog("3×3 draw. Expanding to 7×7.");
+        modeLabel="Classic: 7×7";
+        tournamentStage="none";
+      }
+      expandBoard(); current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu(); return;
+    }
     finalMessage="Final draw: board is full."; gameOver=true; addLog(finalMessage); centerOnNextRender=true; render();
   }
 
