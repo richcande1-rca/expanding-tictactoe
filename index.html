@@ -21,7 +21,7 @@
   .cell.win{color:#102012;background:linear-gradient(145deg,#c8f7bd,var(--win));border-color:#d6ffd0;text-shadow:none}.cell.old-ring{box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
   aside{padding:14px} h1{font-size:1.15rem;margin:0 0 8px}.status{background:var(--panel2);border-radius:14px;padding:10px;min-height:58px;margin:10px 0}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.stat{background:rgba(255,255,255,.055);border-radius:12px;padding:8px;color:var(--muted);font-size:.83rem}.stat strong{display:block;color:var(--text);font-size:1rem;margin-top:2px}
-  .actions{display:grid;grid-template-columns:1fr;gap:8px}button{width:100%;border:0;border-radius:12px;background:#364057;color:var(--text);padding:10px 11px;font-weight:700;cursor:pointer;margin:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}button:hover{filter:brightness(1.08)}button.primary{background:#2e5b8f}button.seed{background:#4a3d74}button.random{background:#3d5f67}button.bonkers{background:#6b4b2a}button.warn{background:#633c3c}
+  .actions{display:grid;grid-template-columns:1fr;gap:8px}button{width:100%;border:0;border-radius:12px;background:#364057;color:var(--text);padding:10px 11px;font-weight:700;cursor:pointer;margin:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}button:hover{filter:brightness(1.08)}button.primary{background:#2e5b8f}button.seed{background:#4a3d74}button.random{background:#3d5f67}button.bonkers{background:#6b4b2a}button.tourney{background:#8a4a8f}button.warn{background:#633c3c}
   label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.9rem;margin-top:10px}input[type="checkbox"]{transform:scale(1.15)}
   details.mobile-info{margin-top:10px}details.mobile-info summary{color:var(--muted);cursor:pointer;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.055);user-select:none}
   .rule-alert{margin:10px 0;padding:12px 10px;border-radius:14px;border:1px solid rgba(255,204,102,.55);background:linear-gradient(145deg,rgba(255,204,102,.18),rgba(255,139,139,.13));font-size:.92rem;line-height:1.35}.rule-alert strong{display:block;color:#ffe2a0;font-size:1.02rem;margin-bottom:3px}.rule-flow{margin-top:6px;color:var(--muted);font-size:.84rem}.notes{color:var(--muted);font-size:.84rem;line-height:1.35;margin-top:12px}.log{max-height:156px;overflow:auto;background:rgba(0,0,0,.18);border-radius:12px;padding:8px;margin-top:10px;color:var(--muted);font-size:.78rem}.log div{padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04)}
@@ -40,6 +40,7 @@
     </div>
     <div class="actions">
       <button class="primary" id="resetBtn">New Game</button>
+      <button class="tourney" id="tournamentBtn">Tournament</button>
       <button class="seed" id="seedBtn">Seed Start</button>
       <button class="random" id="randomBtn">Scatter Seed</button>
       <button class="bonkers" id="bonkersBtn">Bonkers Mines</button>
@@ -51,14 +52,13 @@
     <details class="mobile-info" id="infoDetails" open>
       <summary>Rules / log</summary>
       <div class="rule-alert">
-        <strong>Classic start stays default:</strong>
-        New Game begins on 3×3 and needs 3 across. After a draw expands the board to 7×7, you need <b>5 in a row</b> — not 3.
-        <div class="rule-flow">Classic: 3×3 needs 3 → draw → 7×7 needs 5 → draw → 11×11 needs 7</div>
-        <div class="rule-flow">Seed Start: jumps to 7×7 with a random center 3×3 draw seed. You play O and move first.</div>
-        <div class="rule-flow">Scatter Seed: jumps to 7×7 with 4 X and 5 O scattered. You play X and move first.</div>
-        <div class="rule-flow">Bonkers Mines: Scatter Seed plus 4 hidden mines. Hit one and the square turns to rubble. You keep the turn; only the square is lost.</div>
+        <strong>Tournament Mode:</strong>
+        3×3 starts default. Draw/stalemate expands to 7×7. A 7×7 stalemate enters Bonkers. Bonkers stalemate enters Super Bonkers sudden death.
+        <div class="rule-flow">Classic: 3×3 needs 3 → draw/stalemate → 7×7 needs 5</div>
+        <div class="rule-flow">Bonkers: Scatter Seed plus 4 hidden rubble mines. Mine = lost square, no lost turn.</div>
+        <div class="rule-flow">Super Bonkers: blank 7×7, 6 hidden instant-death bombs. Bomb = immediate loss. Bombs are hidden from everyone.</div>
       </div>
-      <div class="notes">Original marks stay live. Rubble blocks a square and cannot be part of a line. On phone, drag the board area to pan after expansion.</div>
+      <div class="notes">This is deterministic board logic plus hidden probability hazards. Rubble blocks a square and cannot be part of a line.</div>
       <div class="log" id="log"></div>
     </details>
   </aside>
@@ -67,64 +67,64 @@
 (() => {
   const EMPTY="", X="X", O="O", BLOCK="#";
   const boardEl=document.getElementById("board"), boardWrapEl=document.getElementById("boardWrap"), statusEl=document.getElementById("status"), boardStatEl=document.getElementById("boardStat"), winStatEl=document.getElementById("winStat"), xStatEl=document.getElementById("xStat"), oStatEl=document.getElementById("oStat"), logEl=document.getElementById("log"), autoCpuEl=document.getElementById("autoCpu"), infoDetailsEl=document.getElementById("infoDetails");
-  let board=[], size=3, winN=3, current=X, human=X, cpu=O, gameOver=false, thinking=false, highlighted=new Set(), expansions=0, oldBounds=null, centerOnNextRender=true, modeLabel="Classic", hiddenMines=new Set();
+  let board=[], size=3, winN=3, current=X, human=X, cpu=O, gameOver=false, thinking=false, highlighted=new Set(), expansions=0, oldBounds=null, centerOnNextRender=true, modeLabel="Classic", hiddenMines=new Set(), mineMode="none", tournamentStage="none", finalMessage="";
   const dirs=[[1,0],[0,1],[1,1],[1,-1]];
   const isPhone=()=>window.matchMedia("(max-width: 760px)").matches;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   if(isPhone()) infoDetailsEl.open=false;
 
   function newBoard(n){return Array.from({length:n},()=>Array(n).fill(EMPTY));}
-  function resetState(){board=newBoard(size);hiddenMines=new Set();highlighted=new Set();expansions=0;oldBounds=null;gameOver=false;thinking=false;centerOnNextRender=true;}
+  function resetState(){board=newBoard(size);hiddenMines=new Set();mineMode="none";highlighted=new Set();expansions=0;oldBounds=null;gameOver=false;thinking=false;centerOnNextRender=true;finalMessage="";}
 
   function startGame(cpuOpens=false){
-    size=3; winN=3; resetState(); modeLabel="Classic";
+    size=3; winN=3; resetState(); modeLabel="Classic"; tournamentStage="none";
     if(cpuOpens){human=O;cpu=X;current=X;addLog("Classic start: CPU opens as X.");}
     else{human=X;cpu=O;current=X;addLog("Classic start: human opens as X.");}
     render(); maybeCpu();
   }
 
-  function startSeedGame(){
-    size=7; winN=5; resetState(); modeLabel="Seed"; human=O; cpu=X; current=O; expansions=1; oldBounds={minR:2,minC:2,maxR:4,maxC:4};
-    const seed=makeDrawSeed();
-    for(let r=0;r<3;r++) for(let c=0;c<3;c++) board[r+2][c+2]=seed[r][c];
-    addLog("Seed start: random 3×3 draw seed placed in center. Human moves first as O.");
+  function startTournament(){
+    size=3; winN=3; resetState(); modeLabel="Tournament: 3×3"; tournamentStage="classic"; human=X; cpu=O; current=X;
+    addLog("Tournament begins: 3×3 classic board. Draw or stalemate advances to 7×7.");
     render();
+  }
+
+  function startSeedGame(){
+    size=7; winN=5; resetState(); modeLabel="Seed"; tournamentStage="none"; human=O; cpu=X; current=O; expansions=1; oldBounds={minR:2,minC:2,maxR:4,maxC:4};
+    const seed=makeDrawSeed(); for(let r=0;r<3;r++) for(let c=0;c<3;c++) board[r+2][c+2]=seed[r][c];
+    addLog("Seed start: random 3×3 draw seed placed in center. Human moves first as O."); render();
   }
 
   function startScatterSeedGame(){
-    size=7; winN=5; resetState(); modeLabel="Scatter Seed"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
-    scatterMarks();
-    addLog("Scatter Seed: 4 X and 5 O scattered across the full 7×7 board. Human moves first as X.");
-    render();
+    size=7; winN=5; resetState(); modeLabel="Scatter Seed"; tournamentStage="none"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
+    scatterMarks(); addLog("Scatter Seed: 4 X and 5 O scattered across the full 7×7 board. Human moves first as X."); render();
   }
 
   function startBonkersGame(){
-    size=7; winN=5; resetState(); modeLabel="Bonkers Mines"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
-    scatterMarks();
-    placeHiddenMines(4);
-    addLog("Bonkers Mines: Scatter Seed plus 4 hidden mines. Mines become rubble; no turn is lost.");
-    render();
+    size=7; winN=5; resetState(); modeLabel="Bonkers Mines"; tournamentStage="none"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
+    scatterMarks(); mineMode="rubble"; placeHiddenMines(4); addLog("Bonkers Mines: Scatter Seed plus 4 hidden mines. Mines become rubble; no turn is lost."); render();
+  }
+
+  function enterTournamentBonkers(){
+    size=7; winN=5; resetState(); modeLabel="Tournament: Bonkers"; tournamentStage="bonkers"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
+    scatterMarks(); mineMode="rubble"; placeHiddenMines(4); addLog("7×7 stalemate. Tournament enters Bonkers: Scatter Seed plus 4 hidden rubble mines."); render();
+  }
+
+  function enterSuperBonkers(){
+    size=7; winN=5; resetState(); modeLabel="Tournament: Super Bonkers"; tournamentStage="super"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
+    mineMode="death"; placeHiddenMines(6); addLog("Bonkers stalemate. SUPER BONKERS begins: blank 7×7, 6 hidden instant-death bombs."); render();
   }
 
   function scatterMarks(){
-    const cells=allCells();
-    const shuffledCells=shuffle(cells), marks=shuffle([X,X,X,X,O,O,O,O,O]);
+    const shuffledCells=shuffle(allCells()), marks=shuffle([X,X,X,X,O,O,O,O,O]);
     for(let i=0;i<marks.length;i++){const [r,c]=shuffledCells[i]; board[r][c]=marks[i];}
   }
-
-  function placeHiddenMines(count){
-    const open=shuffle(allCells().filter(([r,c])=>board[r][c]===EMPTY));
-    for(let i=0;i<count&&i<open.length;i++){const [r,c]=open[i]; hiddenMines.add(key(r,c));}
-  }
-
+  function placeHiddenMines(count){const open=shuffle(allCells().filter(([r,c])=>board[r][c]===EMPTY)); for(let i=0;i<count&&i<open.length;i++){const [r,c]=open[i]; hiddenMines.add(key(r,c));}}
   function allCells(){const cells=[]; for(let r=0;r<size;r++) for(let c=0;c<size;c++) cells.push([r,c]); return cells;}
 
   function makeDrawSeed(){
     const base=[X,X,X,X,X,O,O,O,O];
-    for(let attempt=0;attempt<2000;attempt++){
-      const s=shuffle(base), grid=[s.slice(0,3),s.slice(3,6),s.slice(6,9)];
-      if(!hasThreeLine(grid,X)&&!hasThreeLine(grid,O)) return grid;
-    }
+    for(let attempt=0;attempt<2000;attempt++){const s=shuffle(base), grid=[s.slice(0,3),s.slice(3,6),s.slice(6,9)]; if(!hasThreeLine(grid,X)&&!hasThreeLine(grid,O)) return grid;}
     return [[X,O,X],[X,O,O],[O,X,X]];
   }
   function shuffle(items){const arr=items.slice(); for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr;}
@@ -152,24 +152,63 @@
     if(size<=3)return 76; if(size<=7)return 54; if(size<=11)return 42; if(size<=15)return 34; return 28;
   }
   function centerBoard(){if(!boardWrapEl)return; boardWrapEl.scrollLeft=Math.max(0,(boardWrapEl.scrollWidth-boardWrapEl.clientWidth)/2); boardWrapEl.scrollTop=Math.max(0,(boardWrapEl.scrollHeight-boardWrapEl.clientHeight)/2);}
-  function statusText(){if(gameOver){const winner=highlighted.size?(current===X?O:X):""; return winner?`${winner} wins with ${winN} in a row.`:"Game over.";} if(thinking)return "CPU is thinking..."; const side=current===human?"Your turn":"CPU turn"; const mines=hiddenMines.size?` Hidden mines: ${hiddenMines.size}.`:""; return `${modeLabel}: ${side}. Need ${winN} in a row.${mines}`;}
+  function statusText(){if(gameOver)return finalMessage||"Game over."; if(thinking)return "CPU is thinking..."; const side=current===human?"Your turn":"CPU turn"; const mines=hiddenMines.size?` Hidden mines: ${hiddenMines.size}.`:""; return `${modeLabel}: ${side}. Need ${winN} in a row.${mines}`;}
 
   function humanMove(r,c){if(gameOver||thinking||current!==human)return; if(!inBounds(r,c)||board[r][c]!==EMPTY)return; placeMove(r,c,human);}
   function placeMove(r,c,mark){
     if(hiddenMines.has(key(r,c))){
-      hiddenMines.delete(key(r,c)); board[r][c]=BLOCK; addLog(`${mark} hit a mine. Square becomes rubble; ${mark} keeps the turn.`); centerOnNextRender=false; render(); if(mark===cpu) maybeCpu(); return;
+      hiddenMines.delete(key(r,c)); board[r][c]=BLOCK;
+      if(mineMode==="death"){
+        const winner=other(mark); gameOver=true; finalMessage=`${mark} hit a bomb. ${winner} wins by sudden death.`; addLog(finalMessage); centerOnNextRender=true; render(); return;
+      }
+      addLog(`${mark} hit a mine. Square becomes rubble; ${mark} keeps the turn.`); centerOnNextRender=false;
+      if(checkTournamentStalemate()) return;
+      render(); if(mark===cpu) maybeCpu(); return;
     }
     board[r][c]=mark; highlighted=new Set(); const winCells=checkWin(r,c,mark);
-    if(winCells){highlighted=new Set(winCells.map(([rr,cc])=>key(rr,cc))); gameOver=true; current=other(mark); addLog(`${mark} wins on ${size}×${size}.`); centerOnNextRender=true; render(); return;}
-    if(isFull()){addLog(`Draw on ${size}×${size}. Expanding by two rings; win length +2.`); expandBoard(); current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu(); return;}
+    if(winCells){highlighted=new Set(winCells.map(([rr,cc])=>key(rr,cc))); gameOver=true; finalMessage=`${mark} wins with ${winN} in a row.`; current=other(mark); addLog(`${mark} wins on ${size}×${size}.`); centerOnNextRender=true; render(); return;}
+    if(checkTournamentStalemate()) return;
+    if(isFull()){handleDrawOrFull(); return;}
     current=other(mark); render(); maybeCpu();
   }
+
+  function handleDrawOrFull(){
+    if(tournamentStage==="classic"){addLog("3×3 draw. Tournament expands to 7×7."); expandBoard(); modeLabel="Tournament: 7×7"; tournamentStage="resolution"; current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu(); return;}
+    finalMessage="Final draw: board is full."; gameOver=true; addLog(finalMessage); centerOnNextRender=true; render();
+  }
+
+  function checkTournamentStalemate(){
+    if(tournamentStage==="none") return false;
+    if(hasPossibleLine(X)||hasPossibleLine(O)) return false;
+    if(tournamentStage==="classic"){
+      addLog("3×3 stalemate. Tournament expands to 7×7."); expandBoard(); modeLabel="Tournament: 7×7"; tournamentStage="resolution"; current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu(); return true;
+    }
+    if(tournamentStage==="resolution"){enterTournamentBonkers(); return true;}
+    if(tournamentStage==="bonkers"){enterSuperBonkers(); return true;}
+    finalMessage="Final stalemate in Super Bonkers."; gameOver=true; addLog(finalMessage); centerOnNextRender=true; render(); return true;
+  }
+
+  function hasPossibleLine(mark){
+    const foe=other(mark);
+    for(let r=0;r<size;r++) for(let c=0;c<size;c++) for(const [dr,dc] of dirs){
+      let possible=true;
+      for(let i=0;i<winN;i++){
+        const rr=r+i*dr, cc=c+i*dc;
+        if(!inBounds(rr,cc)){possible=false; break;}
+        const val=board[rr][cc];
+        if(val===foe||val===BLOCK){possible=false; break;}
+      }
+      if(possible) return true;
+    }
+    return false;
+  }
+
   function checkWin(r,c,mark){
     for(const [dr,dc] of dirs){const cells=[[r,c]]; let rr=r+dr,cc=c+dc; while(inBounds(rr,cc)&&board[rr][cc]===mark){cells.push([rr,cc]); rr+=dr; cc+=dc;} rr=r-dr; cc=c-dc; while(inBounds(rr,cc)&&board[rr][cc]===mark){cells.unshift([rr,cc]); rr-=dr; cc-=dc;} if(cells.length>=winN)return cells;}
     return null;
   }
   function isFull(){for(let r=0;r<size;r++) for(let c=0;c<size;c++) if(board[r][c]===EMPTY)return false; return true;}
-  function expandBoard(){const pad=2, oldSize=size, newSize=size+pad*2, next=newBoard(newSize); for(let r=0;r<oldSize;r++) for(let c=0;c<oldSize;c++) next[r+pad][c+pad]=board[r][c]; board=next; hiddenMines=new Set(); size=newSize; winN+=pad; expansions+=1; oldBounds={minR:pad,minC:pad,maxR:pad+oldSize-1,maxC:pad+oldSize-1};}
+  function expandBoard(){const pad=2, oldSize=size, newSize=size+pad*2, next=newBoard(newSize); for(let r=0;r<oldSize;r++) for(let c=0;c<oldSize;c++) next[r+pad][c+pad]=board[r][c]; board=next; hiddenMines=new Set(); mineMode="none"; size=newSize; winN+=pad; expansions+=1; oldBounds={minR:pad,minC:pad,maxR:pad+oldSize-1,maxC:pad+oldSize-1};}
   function nextByMarkCount(){const marks=countMarks(); return marks.x<=marks.o?X:O;}
 
   function maybeCpu(){if(gameOver||current!==cpu||!autoCpuEl.checked)return; thinking=true; render(); window.setTimeout(()=>{const move=chooseCpuMove(); thinking=false; if(move)placeMove(move.r,move.c,cpu); else render();},220);}
@@ -194,6 +233,7 @@
   function terminalScore(depth){for(let r=0;r<size;r++) for(let c=0;c<size;c++){const mark=board[r][c]; if(!mark||mark===BLOCK)continue; if(checkWin(r,c,mark))return mark===cpu?100-depth:depth-100;} if(isFull())return 0; return null;}
 
   document.getElementById("resetBtn").addEventListener("click",()=>startGame(false));
+  document.getElementById("tournamentBtn").addEventListener("click",startTournament);
   document.getElementById("seedBtn").addEventListener("click",startSeedGame);
   document.getElementById("randomBtn").addEventListener("click",startScatterSeedGame);
   document.getElementById("bonkersBtn").addEventListener("click",startBonkersGame);
