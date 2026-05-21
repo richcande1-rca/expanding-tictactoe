@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Expanding Tic-Tac-Toe — Model 2</title>
+<title>Expanding Tic-Tac-Toe</title>
 <style>
   :root {
     --bg: #111318;
@@ -166,6 +166,7 @@
   }
   button:hover { filter: brightness(1.08); }
   button.primary { background: #2e5b8f; }
+  button.seed { background: #4a3d74; }
   button.warn { background: #633c3c; }
   label {
     display: flex;
@@ -281,7 +282,7 @@
     </section>
 
     <aside class="card">
-      <h1>Expanding Tic-Tac-Toe: Model 2</h1>
+      <h1>Expanding Tic-Tac-Toe</h1>
       <div class="status" id="status"></div>
       <div class="stats">
         <div class="stat">Board<strong id="boardStat">3×3</strong></div>
@@ -291,6 +292,7 @@
       </div>
       <div class="actions">
         <button class="primary" id="resetBtn">New Game</button>
+        <button class="seed" id="seedBtn">Seed Start</button>
         <button id="swapBtn">CPU Opens</button>
         <button class="warn" id="forceBtn">Force Expand</button>
         <button id="cpuBtn">CPU Move</button>
@@ -299,9 +301,10 @@
       <details class="mobile-info" id="infoDetails" open>
         <summary>Rules / log</summary>
         <div class="rule-alert">
-          <strong>Important rule change after a draw:</strong>
-          The first board is 3-across. After a draw expands the board to 7×7, you need <b>5 in a row</b> — not 3.
-          <div class="rule-flow">3×3 needs 3 → draw → 7×7 needs 5 → draw → 11×11 needs 7</div>
+          <strong>Classic start stays default:</strong>
+          New Game begins on 3×3 and needs 3 across. After a draw expands the board to 7×7, you need <b>5 in a row</b> — not 3.
+          <div class="rule-flow">Classic: 3×3 needs 3 → draw → 7×7 needs 5 → draw → 11×11 needs 7</div>
+          <div class="rule-flow">Seed Start: jumps to 7×7 with a random center 3×3 draw seed. You play O and move first.</div>
         </div>
         <div class="notes">
           Original marks stay live. A draw expands naturally on all four sides by two rings. On phone, drag the board area to pan after expansion.
@@ -339,6 +342,7 @@
   let expansions = 0;
   let oldBounds = null;
   let centerOnNextRender = true;
+  let modeLabel = "Classic";
 
   const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
   const isPhone = () => window.matchMedia("(max-width: 760px)").matches;
@@ -350,9 +354,7 @@
     return Array.from({ length: n }, () => Array(n).fill(EMPTY));
   }
 
-  function startGame(cpuOpens = false) {
-    size = 3;
-    winN = 3;
+  function resetState() {
     board = newBoard(size);
     highlighted = new Set();
     expansions = 0;
@@ -360,19 +362,80 @@
     gameOver = false;
     thinking = false;
     centerOnNextRender = true;
+  }
+
+  function startGame(cpuOpens = false) {
+    size = 3;
+    winN = 3;
+    resetState();
+    modeLabel = "Classic";
     if (cpuOpens) {
       human = O;
       cpu = X;
       current = X;
-      addLog("CPU opens as X.");
+      addLog("Classic start: CPU opens as X.");
     } else {
       human = X;
       cpu = O;
       current = X;
-      addLog("Human opens as X.");
+      addLog("Classic start: human opens as X.");
     }
     render();
     maybeCpu();
+  }
+
+  function startSeedGame() {
+    size = 7;
+    winN = 5;
+    resetState();
+    modeLabel = "Seed";
+    human = O;
+    cpu = X;
+    current = O;
+    expansions = 1;
+    oldBounds = { minR: 2, minC: 2, maxR: 4, maxC: 4 };
+
+    const seed = makeDrawSeed();
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        board[r + 2][c + 2] = seed[r][c];
+      }
+    }
+
+    addLog("Seed start: random 3×3 draw seed placed in center. Human moves first as O.");
+    render();
+  }
+
+  function makeDrawSeed() {
+    const base = [X, X, X, X, X, O, O, O, O];
+    for (let attempt = 0; attempt < 2000; attempt++) {
+      const shuffled = shuffle(base);
+      const grid = [
+        shuffled.slice(0, 3),
+        shuffled.slice(3, 6),
+        shuffled.slice(6, 9)
+      ];
+      if (!hasThreeLine(grid, X) && !hasThreeLine(grid, O)) return grid;
+    }
+    return [[X, O, X], [X, O, O], [O, X, X]];
+  }
+
+  function shuffle(items) {
+    const arr = items.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function hasThreeLine(grid, mark) {
+    const lines = [
+      [[0,0],[0,1],[0,2]], [[1,0],[1,1],[1,2]], [[2,0],[2,1],[2,2]],
+      [[0,0],[1,0],[2,0]], [[0,1],[1,1],[2,1]], [[0,2],[1,2],[2,2]],
+      [[0,0],[1,1],[2,2]], [[0,2],[1,1],[2,0]]
+    ];
+    return lines.some(line => line.every(([r, c]) => grid[r][c] === mark));
   }
 
   function addLog(text) {
@@ -468,7 +531,7 @@
     }
     if (thinking) return "CPU is thinking...";
     const side = current === human ? "Your turn" : "CPU turn";
-    return `${side}. Need ${winN} in a row.`;
+    return `${modeLabel}: ${side}. Need ${winN} in a row.`;
   }
 
   function humanMove(r, c) {
@@ -720,6 +783,7 @@
   }
 
   document.getElementById("resetBtn").addEventListener("click", () => startGame(false));
+  document.getElementById("seedBtn").addEventListener("click", startSeedGame);
   document.getElementById("swapBtn").addEventListener("click", () => startGame(true));
   document.getElementById("forceBtn").addEventListener("click", () => {
     if (gameOver) return;
