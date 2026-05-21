@@ -40,7 +40,7 @@
     <div class="actions">
       <button class="primary" id="resetBtn">New Game</button>
       <button class="seed" id="seedBtn">Seed Start</button>
-      <button class="random" id="randomBtn">Random 4+4</button>
+      <button class="random" id="randomBtn">Scatter Seed</button>
       <button id="swapBtn">CPU Opens</button>
       <button class="warn" id="forceBtn">Force Expand</button>
       <button id="cpuBtn">CPU Move</button>
@@ -53,7 +53,7 @@
         New Game begins on 3×3 and needs 3 across. After a draw expands the board to 7×7, you need <b>5 in a row</b> — not 3.
         <div class="rule-flow">Classic: 3×3 needs 3 → draw → 7×7 needs 5 → draw → 11×11 needs 7</div>
         <div class="rule-flow">Seed Start: jumps to 7×7 with a random center 3×3 draw seed. You play O and move first.</div>
-        <div class="rule-flow">Random 4+4: jumps to 7×7 with 4 X and 4 O scattered across the whole board. You play X and move first.</div>
+        <div class="rule-flow">Scatter Seed: jumps to 7×7 with 4 X and 5 O scattered across the whole board. You play X and move first, balancing material at 5-to-5 after your first move.</div>
       </div>
       <div class="notes">Original marks stay live. A draw expands naturally on all four sides by two rings. On phone, drag the board area to pan after expansion.</div>
       <div class="log" id="log"></div>
@@ -88,12 +88,12 @@
     render();
   }
 
-  function startRandomGame(){
-    size=7; winN=5; resetState(); modeLabel="Random 4+4"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
+  function startScatterSeedGame(){
+    size=7; winN=5; resetState(); modeLabel="Scatter Seed"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
     const cells=[]; for(let r=0;r<size;r++) for(let c=0;c<size;c++) cells.push([r,c]);
-    const shuffledCells=shuffle(cells), marks=shuffle([X,X,X,X,O,O,O,O]);
+    const shuffledCells=shuffle(cells), marks=shuffle([X,X,X,X,O,O,O,O,O]);
     for(let i=0;i<marks.length;i++){const [r,c]=shuffledCells[i]; board[r][c]=marks[i];}
-    addLog("Random 4+4 start: 4 X and 4 O scattered across the full 7×7 board. Human moves first as X.");
+    addLog("Scatter Seed: 4 X and 5 O scattered across the full 7×7 board. Human moves first as X.");
     render();
   }
 
@@ -170,7 +170,7 @@
 
   document.getElementById("resetBtn").addEventListener("click",()=>startGame(false));
   document.getElementById("seedBtn").addEventListener("click",startSeedGame);
-  document.getElementById("randomBtn").addEventListener("click",startRandomGame);
+  document.getElementById("randomBtn").addEventListener("click",startScatterSeedGame);
   document.getElementById("swapBtn").addEventListener("click",()=>startGame(true));
   document.getElementById("forceBtn").addEventListener("click",()=>{if(gameOver)return; addLog(`Manual test expansion from ${size}×${size}: +2 rings, +2 win length.`); expandBoard(); current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu();});
   document.getElementById("cpuBtn").addEventListener("click",()=>{if(!gameOver&&current===cpu&&!thinking){const move=chooseCpuMove(); if(move)placeMove(move.r,move.c,cpu);}});
