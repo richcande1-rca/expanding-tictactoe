@@ -36,6 +36,7 @@
   label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.9rem;margin-top:10px}input[type="checkbox"]{transform:scale(1.15)}
   details.mobile-info{margin-top:10px}details.mobile-info summary{color:var(--muted);cursor:pointer;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.055);user-select:none}
   .rule-alert{margin:10px 0;padding:12px 10px;border-radius:14px;border:1px solid rgba(255,204,102,.55);background:linear-gradient(145deg,rgba(255,204,102,.18),rgba(255,139,139,.13));font-size:.92rem;line-height:1.35}.rule-alert strong{display:block;color:#ffe2a0;font-size:1.02rem;margin-bottom:3px}.rule-flow{margin-top:6px;color:var(--muted);font-size:.84rem}.notes{color:var(--muted);font-size:.84rem;line-height:1.35;margin-top:12px}.log{max-height:156px;overflow:auto;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.04);border-radius:12px;padding:8px;margin-top:10px;color:var(--muted);font-size:.78rem}.log div{padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+  .intro-modal,.stage-flash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,7,12,.68);backdrop-filter:blur(8px);z-index:50;opacity:0;pointer-events:none;transition:opacity .2s ease}.intro-modal.show,.stage-flash.show{opacity:1;pointer-events:auto}.intro-card,.stage-card{width:min(92vw,500px);border-radius:22px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(160deg,rgba(38,45,64,.97),rgba(16,19,28,.98));box-shadow:0 24px 80px rgba(0,0,0,.55),0 0 38px rgba(121,184,255,.12);padding:22px;text-align:left;animation:modalRise .28s ease-out}.intro-kicker,.stage-kicker{color:var(--gold);font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.14em}.intro-card h2,.stage-card h2{margin:6px 0 9px;font-size:1.65rem;line-height:1.05;text-shadow:0 0 18px rgba(121,184,255,.24)}.intro-card p,.stage-card p{margin:0 0 12px;color:#d8deeb;line-height:1.4}.intro-steps{display:grid;gap:8px;margin:14px 0}.intro-step{padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.055);color:var(--muted);font-size:.9rem}.intro-step b{color:var(--text)}.intro-card button{margin-top:6px}.stage-card{text-align:center;width:min(90vw,460px);padding:24px}.stage-card.danger{box-shadow:0 24px 90px rgba(0,0,0,.6),0 0 48px rgba(255,64,96,.22);border-color:rgba(255,107,107,.3)}.stage-card.danger .stage-kicker{color:#ff9b9b}.stage-card.danger h2{color:#ffd7df;text-shadow:0 0 20px rgba(255,64,96,.34)}
   @keyframes bgFloat{from{transform:translate3d(-1.5%,0,0) rotate(-.4deg)}to{transform:translate3d(1.5%,1%,0) rotate(.4deg)}}
   @keyframes boardBreath{from{filter:brightness(1)}to{filter:brightness(1.05)}}
   @keyframes markPop{0%{transform:scale(.82);filter:brightness(1.4)}100%{transform:scale(1);filter:brightness(1)}}
@@ -43,7 +44,8 @@
   @keyframes winPulse{from{transform:scale(1);filter:brightness(1)}to{transform:scale(1.035);filter:brightness(1.18)}}
   @keyframes impactShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
   @keyframes dangerFlash{0%{box-shadow:inset 0 0 0 rgba(255,0,0,0);background-color:rgba(255,64,64,.22)}100%{box-shadow:inset 0 0 0 rgba(255,0,0,0);background-color:transparent}}
-  @media(max-width:760px){body{align-items:flex-start;justify-content:flex-start;padding:8px;overflow-x:hidden}.app{width:100%;display:flex;flex-direction:column;gap:7px}aside{order:-1;width:100%;padding:7px;position:sticky;top:4px;z-index:5;border-radius:13px}h1{font-size:.9rem;margin-bottom:4px}.status{min-height:0;padding:6px 7px;margin:4px 0;font-size:.8rem;border-radius:10px;line-height:1.25}.stats{grid-template-columns:repeat(4,1fr);gap:4px;margin:5px 0}.stat{padding:4px 3px;font-size:.58rem;text-align:center;border-radius:8px}.stat strong{font-size:.76rem}.actions{display:flex;grid-template-columns:none;gap:5px;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;padding:1px 0 4px;scrollbar-width:thin}.actions button{flex:0 0 auto;width:auto;min-width:88px;min-height:34px;padding:6px 8px;font-size:.7rem;border-radius:9px;white-space:nowrap}label{margin-top:4px;font-size:.7rem;line-height:1.1}input[type="checkbox"]{transform:scale(.95)}.mobile-info{margin-top:5px}.mobile-info summary{padding:5px 7px;font-size:.7rem;border-radius:9px}.rule-alert{margin:6px 0;padding:7px;font-size:.72rem;border-radius:10px}.rule-alert strong{font-size:.78rem}.rule-flow{font-size:.67rem}.notes{font-size:.7rem}.log{max-height:70px;font-size:.66rem}.board-wrap{width:100%;padding:7px;border-radius:13px;max-height:calc(100dvh - 150px)}#board{--gap:4px}.cell{border-radius:9px;font-size:calc(var(--cell)*.58)}}
+  @keyframes modalRise{from{transform:translateY(14px) scale(.97);opacity:.5}to{transform:translateY(0) scale(1);opacity:1}}
+  @media(max-width:760px){body{align-items:flex-start;justify-content:flex-start;padding:8px;overflow-x:hidden}.app{width:100%;display:flex;flex-direction:column;gap:7px}aside{order:-1;width:100%;padding:7px;position:sticky;top:4px;z-index:5;border-radius:13px}h1{font-size:.9rem;margin-bottom:4px}.status{min-height:0;padding:6px 7px;margin:4px 0;font-size:.8rem;border-radius:10px;line-height:1.25}.stats{grid-template-columns:repeat(4,1fr);gap:4px;margin:5px 0}.stat{padding:4px 3px;font-size:.58rem;text-align:center;border-radius:8px}.stat strong{font-size:.76rem}.actions{display:flex;grid-template-columns:none;gap:5px;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;padding:1px 0 4px;scrollbar-width:thin}.actions button{flex:0 0 auto;width:auto;min-width:88px;min-height:34px;padding:6px 8px;font-size:.7rem;border-radius:9px;white-space:nowrap}label{margin-top:4px;font-size:.7rem;line-height:1.1}input[type="checkbox"]{transform:scale(.95)}.mobile-info{margin-top:5px}.mobile-info summary{padding:5px 7px;font-size:.7rem;border-radius:9px}.rule-alert{margin:6px 0;padding:7px;font-size:.72rem;border-radius:10px}.rule-alert strong{font-size:.78rem}.rule-flow{font-size:.67rem}.notes{font-size:.7rem}.log{max-height:70px;font-size:.66rem}.board-wrap{width:100%;padding:7px;border-radius:13px;max-height:calc(100dvh - 150px)}#board{--gap:4px}.cell{border-radius:9px;font-size:calc(var(--cell)*.58)}.intro-card,.stage-card{padding:17px;border-radius:18px}.intro-card h2,.stage-card h2{font-size:1.32rem}.intro-card p,.stage-card p,.intro-step{font-size:.82rem}.intro-steps{gap:6px;margin:10px 0}.intro-step{padding:7px 8px}}
   @media(max-width:390px){.stats{gap:3px}.stat{font-size:.54rem;padding:3px 2px}.stat strong{font-size:.7rem}.actions button{min-width:82px;font-size:.66rem;padding-left:6px;padding-right:6px}.board-wrap{max-height:calc(100dvh - 142px)}}
 </style>
 </head>
@@ -82,11 +84,34 @@
     </details>
   </aside>
 </main>
+
+<div class="intro-modal" id="introModal" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+  <div class="intro-card">
+    <div class="intro-kicker">Strategy game</div>
+    <h2 id="introTitle">Expanding Tic-Tac-Toe</h2>
+    <p>Classic tic-tac-toe becomes a larger battlefield when the first board fails to resolve.</p>
+    <div class="intro-steps">
+      <div class="intro-step"><b>New Game:</b> start on 3×3. A draw expands to 7×7 and needs 5 in a row.</div>
+      <div class="intro-step"><b>Tournament:</b> 3×3 → 7×7 → Bonkers → Super Bonkers.</div>
+      <div class="intro-step"><b>Super Bonkers:</b> blank 7×7, six hidden instant-death bombs.</div>
+    </div>
+    <button class="primary" id="introCloseBtn">Start Playing</button>
+  </div>
+</div>
+
+<div class="stage-flash" id="stageFlash" aria-live="polite">
+  <div class="stage-card" id="stageCard">
+    <div class="stage-kicker" id="stageKicker">Mode unlocked</div>
+    <h2 id="stageTitle">Stage Title</h2>
+    <p id="stageText">Stage instructions.</p>
+  </div>
+</div>
+
 <script>
 (() => {
   const EMPTY="", X="X", O="O", BLOCK="#";
-  const boardEl=document.getElementById("board"), boardWrapEl=document.getElementById("boardWrap"), statusEl=document.getElementById("status"), boardStatEl=document.getElementById("boardStat"), winStatEl=document.getElementById("winStat"), xStatEl=document.getElementById("xStat"), oStatEl=document.getElementById("oStat"), logEl=document.getElementById("log"), autoCpuEl=document.getElementById("autoCpu"), infoDetailsEl=document.getElementById("infoDetails");
-  let board=[], size=3, winN=3, current=X, human=X, cpu=O, gameOver=false, thinking=false, highlighted=new Set(), expansions=0, oldBounds=null, centerOnNextRender=true, modeLabel="Classic", hiddenMines=new Set(), mineMode="none", tournamentStage="none", finalMessage="";
+  const boardEl=document.getElementById("board"), boardWrapEl=document.getElementById("boardWrap"), statusEl=document.getElementById("status"), boardStatEl=document.getElementById("boardStat"), winStatEl=document.getElementById("winStat"), xStatEl=document.getElementById("xStat"), oStatEl=document.getElementById("oStat"), logEl=document.getElementById("log"), autoCpuEl=document.getElementById("autoCpu"), infoDetailsEl=document.getElementById("infoDetails"), introModal=document.getElementById("introModal"), stageFlash=document.getElementById("stageFlash"), stageCard=document.getElementById("stageCard"), stageKicker=document.getElementById("stageKicker"), stageTitle=document.getElementById("stageTitle"), stageText=document.getElementById("stageText");
+  let board=[], size=3, winN=3, current=X, human=X, cpu=O, gameOver=false, thinking=false, highlighted=new Set(), expansions=0, oldBounds=null, centerOnNextRender=true, modeLabel="Classic", hiddenMines=new Set(), mineMode="none", tournamentStage="none", finalMessage="", stageTimer=null;
   const dirs=[[1,0],[0,1],[1,1],[1,-1]];
   const isPhone=()=>window.matchMedia("(max-width: 760px)").matches;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -95,6 +120,7 @@
   function newBoard(n){return Array.from({length:n},()=>Array(n).fill(EMPTY));}
   function resetState(){board=newBoard(size);hiddenMines=new Set();mineMode="none";highlighted=new Set();expansions=0;oldBounds=null;gameOver=false;thinking=false;centerOnNextRender=true;finalMessage="";}
   function flashImpact(){document.body.classList.remove("impact"); void document.body.offsetWidth; document.body.classList.add("impact"); window.setTimeout(()=>document.body.classList.remove("impact"),360);}
+  function showStage(kicker,title,text,danger=false){window.clearTimeout(stageTimer);stageKicker.textContent=kicker;stageTitle.textContent=title;stageText.textContent=text;stageCard.classList.toggle("danger",!!danger);stageFlash.classList.add("show");stageTimer=window.setTimeout(()=>stageFlash.classList.remove("show"),2600);}
 
   function startGame(cpuOpens=false){
     size=3; winN=3; resetState(); modeLabel="Classic"; tournamentStage="none";
@@ -107,37 +133,44 @@
     size=3; winN=3; resetState(); modeLabel="Tournament: 3×3"; tournamentStage="classic"; human=X; cpu=O; current=X;
     addLog("Tournament begins: 3×3 classic board. Draw or stalemate advances to 7×7.");
     render();
+    showStage("Tournament Mode","Round 1: Classic 3×3","Win normally, or force a draw to expand into the 7×7 battlefield.");
   }
 
   function startSeedGame(){
     size=7; winN=5; resetState(); modeLabel="Seed"; tournamentStage="none"; human=O; cpu=X; current=O; expansions=1; oldBounds={minR:2,minC:2,maxR:4,maxC:4};
     const seed=makeDrawSeed(); for(let r=0;r<3;r++) for(let c=0;c<3;c++) board[r+2][c+2]=seed[r][c];
     addLog("Seed start: random 3×3 draw seed placed in center. Human moves first as O."); render();
+    showStage("Seed Start","Random Center Seed","A drawn 3×3 board is already locked in the center. You play O and need 5 in a row.");
   }
 
   function startScatterSeedGame(){
     size=7; winN=5; resetState(); modeLabel="Scatter Seed"; tournamentStage="none"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
     scatterMarks(); addLog("Scatter Seed: 4 X and 5 O scattered across the full 7×7 board. Human moves first as X."); render();
+    showStage("Scatter Seed","Read the Board","Four X and five O are scattered across the full board. You move first as X.");
   }
 
   function startBonkersGame(){
     size=7; winN=5; resetState(); modeLabel="Bonkers Mines"; tournamentStage="none"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
     scatterMarks(); mineMode="rubble"; placeHiddenMines(4); addLog("Bonkers Mines: Scatter Seed plus 4 hidden mines. Mines become rubble; no turn is lost."); render();
+    showStage("Bonkers Mines","Hidden Rubble Mines","Four hidden mines are on the board. Hit one and the square becomes rubble, but you keep the turn.");
   }
 
   function startSuperBonkersGame(){
     size=7; winN=5; resetState(); modeLabel="Super Bonkers"; tournamentStage="none"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
     mineMode="death"; placeHiddenMines(6); addLog("Super Bonkers: blank 7×7, 6 hidden instant-death bombs. Human moves first as X."); render();
+    showStage("Super Bonkers","Sudden Death","Blank 7×7. Need 5 in a row. Six hidden bombs. Hit one and you lose instantly.",true);
   }
 
   function enterTournamentBonkers(){
     size=7; winN=5; resetState(); modeLabel="Tournament: Bonkers"; tournamentStage="bonkers"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
     scatterMarks(); mineMode="rubble"; placeHiddenMines(4); addLog("7×7 stalemate. Tournament enters Bonkers: Scatter Seed plus 4 hidden rubble mines."); render();
+    showStage("Stage 3","Bonkers Mode","Stalemate broke the 7×7 board. New scatter seed, 4 hidden rubble mines, no lost turn.");
   }
 
   function enterSuperBonkers(){
     size=7; winN=5; resetState(); modeLabel="Tournament: Super Bonkers"; tournamentStage="super"; human=X; cpu=O; current=X; expansions=1; oldBounds=null;
     mineMode="death"; placeHiddenMines(6); addLog("Bonkers stalemate. SUPER BONKERS begins: blank 7×7, 6 hidden instant-death bombs."); render();
+    showStage("Final Stage","Super Bonkers","Blank 7×7. Six hidden instant-death bombs. Win by five in a row or survive their mistake.",true);
   }
 
   function scatterMarks(){
@@ -204,12 +237,17 @@
         addLog("3×3 draw. Tournament expands to 7×7.");
         modeLabel="Tournament: 7×7";
         tournamentStage="resolution";
+        expandBoard(); current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu();
+        showStage("Stage 2","Expansion Board","The original draw stays alive. Board is now 7×7 and you need 5 in a row.");
+        return;
       } else {
         addLog("3×3 draw. Expanding to 7×7.");
         modeLabel="Classic: 7×7";
         tournamentStage="none";
+        expandBoard(); current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu();
+        showStage("Expansion","7×7 Board","The draw becomes the seed. Original marks stay live. Now you need 5 in a row.");
+        return;
       }
-      expandBoard(); current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu(); return;
     }
     finalMessage="Final draw: board is full."; gameOver=true; addLog(finalMessage); centerOnNextRender=true; render();
   }
@@ -218,7 +256,7 @@
     if(tournamentStage==="none") return false;
     if(hasPossibleLine(X)||hasPossibleLine(O)) return false;
     if(tournamentStage==="classic"){
-      addLog("3×3 stalemate. Tournament expands to 7×7."); expandBoard(); modeLabel="Tournament: 7×7"; tournamentStage="resolution"; current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu(); return true;
+      addLog("3×3 stalemate. Tournament expands to 7×7."); expandBoard(); modeLabel="Tournament: 7×7"; tournamentStage="resolution"; current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu(); showStage("Stage 2","Expansion Board","No winning path remained. Board expands to 7×7. Need 5 in a row."); return true;
     }
     if(tournamentStage==="resolution"){enterTournamentBonkers(); return true;}
     if(tournamentStage==="bonkers"){enterSuperBonkers(); return true;}
@@ -278,9 +316,13 @@
   document.getElementById("swapBtn").addEventListener("click",()=>startGame(true));
   document.getElementById("forceBtn").addEventListener("click",()=>{if(gameOver)return; addLog(`Manual test expansion from ${size}×${size}: +2 rings, +2 win length.`); expandBoard(); current=nextByMarkCount(); centerOnNextRender=true; render(); maybeCpu();});
   document.getElementById("cpuBtn").addEventListener("click",()=>{if(!gameOver&&current===cpu&&!thinking){const move=chooseCpuMove(); if(move)placeMove(move.r,move.c,cpu);}});
+  document.getElementById("introCloseBtn").addEventListener("click",()=>introModal.classList.remove("show"));
+  stageFlash.addEventListener("click",()=>stageFlash.classList.remove("show"));
+  introModal.addEventListener("click",e=>{if(e.target===introModal)introModal.classList.remove("show")});
   autoCpuEl.addEventListener("change",maybeCpu);
   window.addEventListener("resize",()=>{centerOnNextRender=true; render();});
   startGame(false);
+  window.setTimeout(()=>introModal.classList.add("show"),250);
 })();
 </script>
 </body>
