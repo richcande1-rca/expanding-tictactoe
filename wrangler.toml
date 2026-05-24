@@ -1,0 +1,8 @@
+name = "expanding-tictactoe-api"
+main = "worker.js"
+compatibility_date = "2026-05-23"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "expanding_tictactoe"
+database_id = "replace-with-your-d1-database-id"
