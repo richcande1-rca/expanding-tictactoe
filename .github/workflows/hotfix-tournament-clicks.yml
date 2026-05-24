@@ -1,0 +1,42 @@
+name: Hotfix tournament clicks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/hotfix-tournament-clicks.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch tournament and scatter turn ownership
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          text = p.read_text()
+          replacements = {
+              'function startTournament(){lastMode="tournament";size=7;winN=5;resetState();modeLabel="Tournament: Scatter Seed";tournamentStage="scatter";human=O;cpu=X;current=X;expansions=1;oldBounds=null;scatterMarks();addLog("Tournament begins on Scatter Seed. CPU opens as X; stalemate escalates to Bonkers.");render();showStage("Tournament Mode","Scatter Seed Start","Tournament begins on a full 7×7 scatter seed. CPU opens as X. Win now, or force escalation to Bonkers. Lose and you\'re out.")}': 'function startTournament(){lastMode="tournament";size=7;winN=5;resetState();modeLabel="Tournament: Scatter Seed";tournamentStage="scatter";human=X;cpu=O;current=X;expansions=1;oldBounds=null;scatterMarks();addLog("Tournament begins on Scatter Seed. Human moves first as X; stalemate escalates to Bonkers.");render();showStage("Tournament Mode","Scatter Seed Start","Tournament begins on a full 7×7 scatter seed. You move first as X. Win now, or force escalation to Bonkers. Lose and you\'re out.")}',
+              'function startScatterSeedGame(){lastMode="scatter";size=7;winN=5;resetState();modeLabel="Scatter Seed";tournamentStage="none";human=O;cpu=X;current=X;expansions=1;oldBounds=null;scatterMarks();addLog("Scatter Seed: 4 X and 5 O scattered across the full 7×7 board. CPU opens as X.");render();showStage("Scatter Seed","Read the Board","Four X and five O are scattered across the full board. CPU opens as X; you play O.")}': 'function startScatterSeedGame(){lastMode="scatter";size=7;winN=5;resetState();modeLabel="Scatter Seed";tournamentStage="none";human=X;cpu=O;current=X;expansions=1;oldBounds=null;scatterMarks();addLog("Scatter Seed: 4 X and 5 O scattered across the full 7×7 board. Human moves first as X.");render();showStage("Scatter Seed","Read the Board","Four X and five O are scattered across the full board. You move first as X.")}',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'Missing expected text: {old[:90]}...')
+              text = text.replace(old, new, 1)
+          p.write_text(text)
+          PY
+      - name: Commit hotfix and remove one-shot workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/hotfix-tournament-clicks.yml
+          git add index.html
+          git commit -m "Fix tournament scatter clicks"
+          git push
